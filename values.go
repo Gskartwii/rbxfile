@@ -4,6 +4,8 @@ import (
 	"github.com/robloxapi/rbxapi"
 	"strconv"
 	"strings"
+    "fmt"
+    "bytes"
 )
 
 // Type represents a Roblox type.
@@ -49,6 +51,15 @@ const (
 	TypeRect2D
 	TypePhysicalProperties
 	TypeColor3uint8
+    TypeNumberSequenceKeypoint
+    TypeColorSequenceKeypoint
+    TypeSystemAddress
+    TypeMap
+    TypeDictionary
+    TypeArray
+    TypeTuple
+    TypeRegion3
+    TypeRegion3int16
 )
 
 // TypeFromString returns a Type from its string representation. TypeInvalid
@@ -86,34 +97,42 @@ func TypeFromAPIString(api *rbxapi.API, s string) Type {
 }
 
 var typeStrings = map[Type]string{
-	TypeString:             "String",
-	TypeBinaryString:       "BinaryString",
-	TypeProtectedString:    "ProtectedString",
-	TypeContent:            "Content",
-	TypeBool:               "Bool",
-	TypeInt:                "Int",
-	TypeFloat:              "Float",
-	TypeDouble:             "Double",
-	TypeUDim:               "UDim",
-	TypeUDim2:              "UDim2",
-	TypeRay:                "Ray",
-	TypeFaces:              "Faces",
-	TypeAxes:               "Axes",
-	TypeBrickColor:         "BrickColor",
-	TypeColor3:             "Color3",
-	TypeVector2:            "Vector2",
-	TypeVector3:            "Vector3",
-	TypeCFrame:             "CFrame",
-	TypeToken:              "Token",
-	TypeReference:          "Reference",
-	TypeVector3int16:       "Vector3int16",
-	TypeVector2int16:       "Vector2int16",
-	TypeNumberSequence:     "NumberSequence",
-	TypeColorSequence:      "ColorSequence",
-	TypeNumberRange:        "NumberRange",
-	TypeRect2D:             "Rect2D",
-	TypePhysicalProperties: "PhysicalProperties",
-	TypeColor3uint8:        "Color3uint8",
+	TypeString:                 "String",
+	TypeBinaryString:           "BinaryString",
+	TypeProtectedString:        "ProtectedString",
+	TypeContent:                "Content",
+	TypeBool:                   "Bool",
+	TypeInt:                    "Int",
+	TypeFloat:                  "Float",
+	TypeDouble:                 "Double",
+	TypeUDim:                   "UDim",
+	TypeUDim2:                  "UDim2",
+	TypeRay:                    "Ray",
+	TypeFaces:                  "Faces",
+	TypeAxes:                   "Axes",
+	TypeBrickColor:             "BrickColor",
+	TypeColor3:                 "Color3",
+	TypeVector2:                "Vector2",
+	TypeVector3:                "Vector3",
+	TypeCFrame:                 "CFrame",
+	TypeToken:                  "Token",
+	TypeReference:              "Reference",
+	TypeVector3int16:           "Vector3int16",
+	TypeVector2int16:           "Vector2int16",
+	TypeNumberSequence:         "NumberSequence",
+	TypeColorSequence:          "ColorSequence",
+	TypeNumberRange:            "NumberRange",
+	TypeRect2D:                 "Rect2D",
+	TypePhysicalProperties:     "PhysicalProperties",
+	TypeColor3uint8:            "Color3uint8",
+    TypeTuple:                  "Tuple",
+    TypeArray:                  "Array",
+    TypeMap:                    "Map",
+    TypeDictionary:             "Dictionary",
+    TypeColorSequenceKeypoint:  "ColorSequenceKeypoint",
+    TypeNumberSequenceKeypoint: "NumberSequenceKeypoint",
+    TypeRegion3:                "Region3",
+    TypeRegion3int16:           "Region3int16",
 }
 
 // Value holds a value of a particular Type.
@@ -170,6 +189,14 @@ var valueGenerators = map[Type]valueGenerator{
 	TypeRect2D:             newValueRect2D,
 	TypePhysicalProperties: newValuePhysicalProperties,
 	TypeColor3uint8:        newValueColor3uint8,
+    TypeTuple:                  newValueTuple,
+    TypeArray:                  newValueArray,
+    TypeMap:                    newValueMap,
+    TypeDictionary:             newValueDictionary,
+    TypeColorSequenceKeypoint:  newValueColorSequenceKeypoint,
+    TypeNumberSequenceKeypoint: newValueNumberSequenceKeypoint,
+    TypeRegion3:                newValueRegion3,
+    TypeRegion3int16:           newValueRegion3int16,
 }
 
 func joinstr(a ...string) string {
@@ -185,6 +212,37 @@ func joinstr(a ...string) string {
 	}
 	return string(b)
 }
+
+type ValueTuple []Value
+type ValueArray []Value
+type ValueDictionary map[string]Value
+type ValueMap map[string]Value
+type ValueRegion3 struct {
+    Start ValueVector3
+    End ValueVector3
+}
+type ValueRegion3int16 struct {
+    Start ValueVector3int16
+    End ValueVector3int16
+}
+type ValueSystemAddress ValueString
+
+func newValueSystemAddress() Value {
+	return make(ValueSystemAddress, 0)
+}
+
+func (ValueSystemAddress) Type() Type {
+	return TypeSystemAddress
+}
+func (t ValueSystemAddress) String() string {
+	return string(t)
+}
+func (t ValueSystemAddress) Copy() Value {
+	c := make(ValueSystemAddress, len(t))
+	copy(c, t)
+	return c
+}
+
 
 ////////////////////////////////////////////////////////////////
 // Values
@@ -904,3 +962,129 @@ func (t ValueColor3uint8) Copy() Value {
 }
 
 ////////////////
+func newValueRegion3() Value {
+    return *new(ValueRegion3)
+}
+func newValueRegion3int16() Value {
+    return *new(ValueRegion3int16)
+}
+func newValueTuple() Value {
+    return *new(ValueTuple)
+}
+func newValueArray() Value {
+    return *new(ValueArray)
+}
+func newValueMap() Value {
+    return *new(ValueMap)
+}
+func newValueDictionary() Value {
+    return *new(ValueDictionary)
+}
+func newValueColorSequenceKeypoint() Value {
+    return *new(ValueColorSequenceKeypoint)
+}
+func newValueNumberSequenceKeypoint() Value {
+    return *new(ValueNumberSequenceKeypoint)
+}
+
+func (x ValueRegion3) String() string {
+    return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
+}
+func (x ValueRegion3int16) String() string {
+    return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
+}
+
+func (x ValueTuple) String() string {
+	var ret bytes.Buffer
+	ret.WriteString("[")
+
+	for _, y := range x {
+		ret.WriteString(fmt.Sprintf("(%s) %s, ", y.Type().String(), y.String()))
+	}
+
+	ret.WriteString("]")
+	return ret.String()
+}
+
+func (x ValueArray) String() string {
+	return ValueTuple(x).String()
+}
+
+func (x ValueDictionary) String() string {
+	var ret bytes.Buffer
+	ret.WriteString("{")
+
+	for k, v := range x {
+		ret.WriteString(fmt.Sprintf("%s: (%s) %s, ", k, v.Type().String(), v.String()))
+	}
+
+	ret.WriteString("}")
+	return ret.String()
+}
+
+func (x ValueMap) String() string {
+	return ValueDictionary(x).String()
+}
+
+func (x ValueTuple) Copy() Value {
+    return x // nop
+}
+
+func (x ValueTuple) Type() Type {
+    return TypeTuple
+}
+
+
+func (x ValueArray) Copy() Value {
+    return x
+}
+func (x ValueArray) Type() Type {
+    return TypeArray
+}
+
+func (x ValueMap) Copy() Value {
+    return x
+}
+
+func (x ValueMap) Type() Type {
+    return TypeMap
+}
+
+func (x ValueDictionary) Copy() Value {
+    return Value(x)
+}
+
+func (x ValueDictionary) Type() Type {
+    return TypeDictionary
+}
+
+func (x ValueColorSequenceKeypoint) Copy() Value {
+    return x
+}
+
+func (x ValueColorSequenceKeypoint) Type() Type {
+    return TypeColorSequenceKeypoint
+}
+func (x ValueNumberSequenceKeypoint) Copy() Value {
+    return x
+}
+
+func (x ValueNumberSequenceKeypoint) Type() Type {
+    return TypeNumberSequenceKeypoint
+}
+
+func (x ValueRegion3) Copy() Value {
+    return x
+}
+
+func (x ValueRegion3) Type() Type {
+    return TypeRegion3
+}
+
+func (x ValueRegion3int16) Copy() Value {
+    return x
+}
+
+func (x ValueRegion3int16) Type() Type {
+    return TypeRegion3int16
+}
