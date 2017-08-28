@@ -3,7 +3,7 @@ package xml
 import (
 	"errors"
 	"github.com/robloxapi/rbxapi"
-	"github.com/robloxapi/rbxfile"
+	"github.com/gskartwii/rbxfile"
 	"io"
 )
 
