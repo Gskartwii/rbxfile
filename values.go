@@ -60,6 +60,7 @@ const (
     TypeTuple
     TypeRegion3
     TypeRegion3int16
+    TypeDefault = 255
 )
 
 // TypeFromString returns a Type from its string representation. TypeInvalid
@@ -133,6 +134,7 @@ var typeStrings = map[Type]string{
     TypeNumberSequenceKeypoint: "NumberSequenceKeypoint",
     TypeRegion3:                "Region3",
     TypeRegion3int16:           "Region3int16",
+    TypeDefault:                "Default",
 }
 
 // Value holds a value of a particular Type.
@@ -197,6 +199,7 @@ var valueGenerators = map[Type]valueGenerator{
     TypeNumberSequenceKeypoint: newValueNumberSequenceKeypoint,
     TypeRegion3:                newValueRegion3,
     TypeRegion3int16:           newValueRegion3int16,
+    TypeDefault:                newValueDefault,
 }
 
 func joinstr(a ...string) string {
@@ -242,6 +245,23 @@ func (t ValueSystemAddress) Copy() Value {
 	copy(c, t)
 	return c
 }
+
+type ValueDefault struct{}
+func newValueDefault() Value {
+    return ValueDefault{}
+}
+
+func (ValueDefault) Type() Type {
+    return TypeDefault
+}
+func (ValueDefault) String() string {
+    return "Default"
+}
+func (ValueDefault) Copy() Value {
+    return newValueDefault()
+}
+
+var DefaultValue = ValueDefault{}
 
 
 ////////////////////////////////////////////////////////////////
