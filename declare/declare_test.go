@@ -1,6 +1,6 @@
 package declare_test
 
-import . "github.com/robloxapi/rbxfile/declare"
+import . "github.com/gskartwii/rbxfile/declare"
 
 func Example() {
 	root := Root{

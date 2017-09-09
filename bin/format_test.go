@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/robloxapi/rbxapi"
-	"github.com/robloxapi/rbxfile"
+	"github.com/gskartwii/rbxfile"
 	"testing"
 )
 

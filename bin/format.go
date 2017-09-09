@@ -40,8 +40,8 @@ import (
 	"bytes"
 	"errors"
 	"github.com/robloxapi/rbxapi"
-	"github.com/robloxapi/rbxfile"
-	"github.com/robloxapi/rbxfile/xml"
+	"github.com/gskartwii/rbxfile"
+	"github.com/gskartwii/rbxfile/xml"
 	"io"
 )
 

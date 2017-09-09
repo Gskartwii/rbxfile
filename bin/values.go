@@ -655,11 +655,11 @@ func (ValueUDim) Type() Type {
 }
 
 func (v *ValueUDim) ArrayBytes(a []Value) (b []byte, err error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("UDim: not implemented")
 }
 
 func (v ValueUDim) FromArrayBytes(b []byte) (a []Value, err error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("UDim: not implemented")
 }
 
 func (v ValueUDim) Bytes() []byte {
@@ -1199,11 +1199,11 @@ func (ValueVector2int16) Type() Type {
 }
 
 func (v *ValueVector2int16) ArrayBytes(a []Value) (b []byte, err error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("Vector2int16: not implemented")
 }
 
 func (v ValueVector2int16) FromArrayBytes(b []byte) (a []Value, err error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("Vector2int16: not implemented")
 }
 
 func (v ValueVector2int16) Bytes() []byte {

@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"github.com/robloxapi/rbxfile"
+	"github.com/gskartwii/rbxfile"
 	"io/ioutil"
 )
 

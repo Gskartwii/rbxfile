@@ -7,14 +7,14 @@
 // The easiest way to use this package is to import it directly into the
 // current package:
 //
-//     import . "github.com/robloxapi/rbxfile/declare"
+//     import . "github.com/gskartwii/rbxfile/declare"
 //
 // This allows the package's identifiers to be used directly without a
 // qualifier.
 package declare
 
 import (
-	"github.com/robloxapi/rbxfile"
+	"github.com/gskartwii/rbxfile"
 )
 
 // Root declares a rbxfile.Root. It is a list that contains Instance

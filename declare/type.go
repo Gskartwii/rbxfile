@@ -1,7 +1,7 @@
 package declare
 
 import (
-	"github.com/robloxapi/rbxfile"
+	"github.com/gskartwii/rbxfile"
 	"strings"
 )
 
