@@ -655,11 +655,11 @@ func (ValueUDim) Type() Type {
 }
 
 func (v *ValueUDim) ArrayBytes(a []Value) (b []byte, err error) {
-	return nil, errors.New("UDim: not implemented")
+	return interleaveFields(v.Type(), a)
 }
 
 func (v ValueUDim) FromArrayBytes(b []byte) (a []Value, err error) {
-	return nil, errors.New("UDim: not implemented")
+	return deinterleaveFields(v.Type(), b)
 }
 
 func (v ValueUDim) Bytes() []byte {
@@ -680,6 +680,30 @@ func (v *ValueUDim) FromBytes(b []byte) error {
 	v.Offset.FromBytes(b[4:8])
 
 	return nil
+}
+
+func (ValueUDim) fieldLen() []int {
+	return []int{4, 4}
+}
+
+func (v *ValueUDim) fieldSet(i int, b []byte) (err error) {
+	switch i {
+	case 0:
+		err = v.Scale.FromBytes(b)
+	case 1:
+		err = v.Offset.FromBytes(b)
+	}
+	return
+}
+
+func (v *ValueUDim) fieldGet(i int) (b []byte) {
+	switch i {
+	case 0:
+		b = v.Scale.Bytes()
+	case 1:
+		b = v.Offset.Bytes()
+	}
+	return
 }
 
 ////////////////////////////////////////////////////////////////
