@@ -496,7 +496,7 @@ func (dec *rdecoder) getValue(tag *Tag, valueType string, enum *rbxapi.Enum) (va
 			// Verify that value is a valid enum item
 			for _, item := range enum.Items {
 				if int(v) == item.Value {
-					return rbxfile.ValueToken(v), true
+					return rbxfile.ValueToken{Value: uint32(v)}, true
 				}
 			}
 			if dec.codec.ExcludeInvalidAPI {
@@ -505,7 +505,7 @@ func (dec *rdecoder) getValue(tag *Tag, valueType string, enum *rbxapi.Enum) (va
 			}
 		}
 		// Assume that it is correct
-		return rbxfile.ValueToken(v), true
+		return rbxfile.ValueToken{Value: uint32(v)}, true
 
 	case "UDim":
 		// Unknown
@@ -823,13 +823,13 @@ func (enc *rencoder) encodeProperties(instance *rbxfile.Instance) (properties []
 					}
 				} else if istoken && enum != nil {
 					for _, item := range enum.Items {
-						if int(token) == item.Value {
+						if int(token.Value) == item.Value {
 							goto finishToken
 						}
 					}
 
 					enc.document.Warnings = append(enc.document.Warnings,
-						fmt.Errorf("invalid enum value `%d` for property %s.%s (%s)", uint32(token), instance.ClassName, name, enum.Name),
+						fmt.Errorf("invalid enum value `%d` for property %s.%s (%s)", uint32(token.Value), instance.ClassName, name, enum.Name),
 					)
 					if enc.codec.ExcludeInvalidAPI {
 						continue
@@ -1067,7 +1067,7 @@ func (enc *rencoder) encodeProperty(class, prop string, value rbxfile.Value) *Ta
 			StartName: "token",
 			Attr:      attr,
 			NoIndent:  true,
-			Text:      strconv.FormatUint(uint64(value), 10),
+			Text:      strconv.FormatUint(uint64(value.Value), 10),
 		}
 
 	case rbxfile.ValueUDim:

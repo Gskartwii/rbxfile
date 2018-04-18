@@ -104,7 +104,7 @@ func NewInstance(className string, parent *Instance) *Instance {
 
 func assertLoop(child, parent *Instance) error {
 	if parent == child {
-		return fmt.Errorf("attempt to set %s as its own parent", child.Name())
+		return fmt.Errorf("attempt to set %s as its own parent", child.ClassName)
 	}
 	if parent != nil && parent.IsDescendantOf(child) {
 		return errors.New("attempt to set parent would result in circular reference")
@@ -352,10 +352,16 @@ func (inst *Instance) IsDescendantOf(ancestor *Instance) bool {
 func (inst *Instance) Name() string {
 	iname, ok := inst.Properties["Name"]
 	if !ok {
-		return ""
+		return inst.ClassName
 	}
 
+	if iname.Type() == TypeDefault {
+		return inst.ClassName
+	}
 	name, _ := iname.(ValueString)
+	if string(name) == "" {
+		return inst.ClassName
+	}
 	return string(name)
 }
 
@@ -372,7 +378,7 @@ func (inst *Instance) String() string {
 		return inst.ClassName
 	}
 
-	return string(name)
+	return string(name) + inst.ClassName
 }
 
 // SetName sets the Name property of the instance.

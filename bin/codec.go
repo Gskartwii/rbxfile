@@ -377,7 +377,7 @@ func decodeValue(valueType string, refs map[int32]*rbxfile.Instance, bvalue Valu
 		value = cf
 
 	case *ValueToken:
-		value = rbxfile.ValueToken(*bvalue)
+		value = rbxfile.ValueToken{Value: uint32(*bvalue)}
 
 	case *ValueReference:
 		value = rbxfile.ValueReference{Instance: refs[int32(*bvalue)]}
@@ -942,7 +942,7 @@ func encodeValue(refs map[*rbxfile.Instance]int, value rbxfile.Value) (bvalue Va
 		bvalue = cf
 
 	case rbxfile.ValueToken:
-		return (*ValueToken)(&value)
+		return (*ValueToken)(&value.Value)
 
 	case rbxfile.ValueReference:
 		// Convert an instance reference to a reference number.

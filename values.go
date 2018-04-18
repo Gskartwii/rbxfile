@@ -60,6 +60,7 @@ const (
     TypeTuple
     TypeRegion3
     TypeRegion3int16
+	TypeInt64
     TypeDefault = 255
 )
 
@@ -134,6 +135,7 @@ var typeStrings = map[Type]string{
     TypeNumberSequenceKeypoint: "NumberSequenceKeypoint",
     TypeRegion3:                "Region3",
     TypeRegion3int16:           "Region3int16",
+	TypeInt64:					"Int64",
     TypeDefault:                "Default",
 }
 
@@ -199,6 +201,7 @@ var valueGenerators = map[Type]valueGenerator{
     TypeNumberSequenceKeypoint: newValueNumberSequenceKeypoint,
     TypeRegion3:                newValueRegion3,
     TypeRegion3int16:           newValueRegion3int16,
+	TypeInt64:					newValueInt64,
     TypeDefault:                newValueDefault,
 }
 
@@ -229,6 +232,7 @@ type ValueRegion3int16 struct {
     End ValueVector3int16
 }
 type ValueSystemAddress ValueString
+type ValueInt64 int64
 
 func newValueSystemAddress() Value {
 	return make(ValueSystemAddress, 0)
@@ -696,7 +700,11 @@ func (t ValueCFrame) Copy() Value {
 
 ////////////////
 
-type ValueToken uint32
+type ValueToken struct {
+	Value uint32
+	ID uint16
+	Name string
+}
 
 func newValueToken() Value {
 	return *new(ValueToken)
@@ -706,7 +714,7 @@ func (ValueToken) Type() Type {
 	return TypeToken
 }
 func (t ValueToken) String() string {
-	return strconv.FormatInt(int64(t), 10)
+	return t.Name + ": " + strconv.FormatInt(int64(t.Value), 10)
 }
 func (t ValueToken) Copy() Value {
 	return t
@@ -1006,12 +1014,19 @@ func newValueColorSequenceKeypoint() Value {
 func newValueNumberSequenceKeypoint() Value {
     return *new(ValueNumberSequenceKeypoint)
 }
+func newValueInt64() Value {
+	return *new(ValueInt64)
+}
 
 func (x ValueRegion3) String() string {
     return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
 }
 func (x ValueRegion3int16) String() string {
     return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
+}
+
+func (x ValueInt64) String() string {
+	return fmt.Sprintf("%d", x)
 }
 
 func (x ValueTuple) String() string {
@@ -1107,4 +1122,12 @@ func (x ValueRegion3int16) Copy() Value {
 
 func (x ValueRegion3int16) Type() Type {
     return TypeRegion3int16
+}
+
+func (x ValueInt64) Copy() Value {
+	return x
+}
+
+func (x ValueInt64) Type() Type {
+	return TypeInt64
 }
