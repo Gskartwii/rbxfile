@@ -1034,6 +1034,9 @@ func (x ValueTuple) String() string {
 	ret.WriteString("[")
 
 	for _, y := range x {
+		if y == nil {
+			ret.WriteString("nil, ")
+		}
 		ret.WriteString(fmt.Sprintf("(%s) %s, ", y.Type().String(), y.String()))
 	}
 

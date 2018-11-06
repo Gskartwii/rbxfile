@@ -245,7 +245,9 @@ func (inst *Instance) clone(refs, crefs References, propRefs *[]PropRef) *Instan
 			})
 			continue
 		}
-		clone.Properties[name] = value.Copy()
+		if value != nil {
+			clone.Properties[name] = value.Copy()
+		}
 	}
 	for i, child := range inst.Children {
 		c := child.clone(refs, crefs, propRefs)

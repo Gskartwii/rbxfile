@@ -2,8 +2,9 @@ package rbxfile
 
 import (
 	"encoding/hex"
-	"github.com/satori/go.uuid"
 	"strings"
+
+	"github.com/satori/go.uuid"
 )
 
 // PropRef specifies the property of an instance that is a reference, which is
@@ -84,5 +85,5 @@ func IsEmptyReference(ref string) bool {
 // GenerateReference generates a unique string that can be used as a reference
 // to an Instance.
 func GenerateReference() string {
-	return "RBX" + strings.ToUpper(hex.EncodeToString(uuid.NewV4().Bytes()))
+	return "RBX" + strings.ToUpper(hex.EncodeToString(uuid.Must(uuid.NewV4()).Bytes()))
 }
