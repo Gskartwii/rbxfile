@@ -496,7 +496,7 @@ func (dec *rdecoder) getValue(tag *Tag, valueType string, enum rbxapi.Enum) (val
 			// Verify that value is a valid enum item
 			for _, item := range enum.GetItems() {
 				if int(v) == item.GetValue() {
-                    return rbxfile.ValueToken(Value: uint32(v)), true
+                    return rbxfile.ValueToken{Value: uint32(v)}, true
 				}
 			}
 			if dec.codec.ExcludeInvalidAPI {
