@@ -29,9 +29,11 @@ func (refs References) Resolve(propRef PropRef) bool {
 		return false
 	}
 	referent := refs[propRef.Reference]
+	propRef.Instance.PropertiesMutex.Lock()
 	propRef.Instance.Properties[propRef.Property] = ValueReference{
 		Instance: referent,
 	}
+	propRef.Instance.PropertiesMutex.Unlock()
 	return referent != nil && !IsEmptyReference(propRef.Reference)
 }
 

@@ -3,9 +3,10 @@ package bin
 import (
 	"errors"
 	"fmt"
-	"github.com/robloxapi/rbxapi"
-	"github.com/gskartwii/rbxfile"
 	"sort"
+
+	"github.com/gskartwii/rbxfile"
+	"github.com/robloxapi/rbxapi"
 )
 
 // Mode indicates how RobloxCodec should interpret data.
@@ -572,6 +573,7 @@ func (c RobloxCodec) Encode(root *rbxfile.Root) (model *FormatModel, err error) 
 		// Populate propChunkMap.
 		for _, ref := range instChunk.InstanceIDs {
 			inst := instList[ref]
+			inst.PropertiesMutex.RLock()
 			for name, value := range inst.Properties {
 				if _, ok := propChunkMap[name]; ok {
 					// A chunk of the property name already exists.
@@ -655,6 +657,7 @@ func (c RobloxCodec) Encode(root *rbxfile.Root) (model *FormatModel, err error) 
 					Properties:   make([]Value, len(instChunk.InstanceIDs)),
 				}
 			}
+			inst.PropertiesMutex.RUnlock()
 		}
 
 		if propAPI != nil && !c.ExcludeInvalidAPI {
@@ -666,7 +669,9 @@ func (c RobloxCodec) Encode(root *rbxfile.Root) (model *FormatModel, err error) 
 				matches := true
 				for _, ref := range instChunk.InstanceIDs {
 					inst := instList[ref]
+					inst.PropertiesMutex.RLock()
 					prop, ok := inst.Properties[name]
+					inst.PropertiesMutex.RUnlock()
 					if !ok {
 						continue
 					}
@@ -701,9 +706,11 @@ func (c RobloxCodec) Encode(root *rbxfile.Root) (model *FormatModel, err error) 
 				inst := instList[ref]
 
 				var bvalue Value
+				inst.PropertiesMutex.RLock()
 				if value, ok := inst.Properties[name]; ok {
 					bvalue = encodeValue(refs, value)
 				}
+				inst.PropertiesMutex.RUnlock()
 
 				if bvalue == nil || bvalue.Type() != propChunk.DataType {
 					// Use default value for DataType.

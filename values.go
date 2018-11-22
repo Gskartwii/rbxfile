@@ -1,11 +1,12 @@
 package rbxfile
 
 import (
-	"github.com/robloxapi/rbxapi"
+	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
-    "fmt"
-    "bytes"
+
+	"github.com/robloxapi/rbxapi"
 )
 
 // Type represents a Roblox type.
@@ -51,17 +52,17 @@ const (
 	TypeRect2D
 	TypePhysicalProperties
 	TypeColor3uint8
-    TypeNumberSequenceKeypoint
-    TypeColorSequenceKeypoint
-    TypeSystemAddress
-    TypeMap
-    TypeDictionary
-    TypeArray
-    TypeTuple
-    TypeRegion3
-    TypeRegion3int16
+	TypeNumberSequenceKeypoint
+	TypeColorSequenceKeypoint
+	TypeSystemAddress
+	TypeMap
+	TypeDictionary
+	TypeArray
+	TypeTuple
+	TypeRegion3
+	TypeRegion3int16
 	TypeInt64
-    TypeDefault = 255
+	TypeDefault = 255
 )
 
 // TypeFromString returns a Type from its string representation. TypeInvalid
@@ -127,16 +128,16 @@ var typeStrings = map[Type]string{
 	TypeRect2D:                 "Rect2D",
 	TypePhysicalProperties:     "PhysicalProperties",
 	TypeColor3uint8:            "Color3uint8",
-    TypeTuple:                  "Tuple",
-    TypeArray:                  "Array",
-    TypeMap:                    "Map",
-    TypeDictionary:             "Dictionary",
-    TypeColorSequenceKeypoint:  "ColorSequenceKeypoint",
-    TypeNumberSequenceKeypoint: "NumberSequenceKeypoint",
-    TypeRegion3:                "Region3",
-    TypeRegion3int16:           "Region3int16",
-	TypeInt64:					"Int64",
-    TypeDefault:                "Default",
+	TypeTuple:                  "Tuple",
+	TypeArray:                  "Array",
+	TypeMap:                    "Map",
+	TypeDictionary:             "Dictionary",
+	TypeColorSequenceKeypoint:  "ColorSequenceKeypoint",
+	TypeNumberSequenceKeypoint: "NumberSequenceKeypoint",
+	TypeRegion3:                "Region3",
+	TypeRegion3int16:           "Region3int16",
+	TypeInt64:                  "Int64",
+	TypeDefault:                "Default",
 }
 
 // Value holds a value of a particular Type.
@@ -165,44 +166,44 @@ func NewValue(typ Type) Value {
 type valueGenerator func() Value
 
 var valueGenerators = map[Type]valueGenerator{
-	TypeString:             newValueString,
-	TypeBinaryString:       newValueBinaryString,
-	TypeProtectedString:    newValueProtectedString,
-	TypeContent:            newValueContent,
-	TypeBool:               newValueBool,
-	TypeInt:                newValueInt,
-	TypeFloat:              newValueFloat,
-	TypeDouble:             newValueDouble,
-	TypeUDim:               newValueUDim,
-	TypeUDim2:              newValueUDim2,
-	TypeRay:                newValueRay,
-	TypeFaces:              newValueFaces,
-	TypeAxes:               newValueAxes,
-	TypeBrickColor:         newValueBrickColor,
-	TypeColor3:             newValueColor3,
-	TypeVector2:            newValueVector2,
-	TypeVector3:            newValueVector3,
-	TypeCFrame:             newValueCFrame,
-	TypeToken:              newValueToken,
-	TypeReference:          newValueReference,
-	TypeVector3int16:       newValueVector3int16,
-	TypeVector2int16:       newValueVector2int16,
-	TypeNumberSequence:     newValueNumberSequence,
-	TypeColorSequence:      newValueColorSequence,
-	TypeNumberRange:        newValueNumberRange,
-	TypeRect2D:             newValueRect2D,
-	TypePhysicalProperties: newValuePhysicalProperties,
-	TypeColor3uint8:        newValueColor3uint8,
-    TypeTuple:                  newValueTuple,
-    TypeArray:                  newValueArray,
-    TypeMap:                    newValueMap,
-    TypeDictionary:             newValueDictionary,
-    TypeColorSequenceKeypoint:  newValueColorSequenceKeypoint,
-    TypeNumberSequenceKeypoint: newValueNumberSequenceKeypoint,
-    TypeRegion3:                newValueRegion3,
-    TypeRegion3int16:           newValueRegion3int16,
-	TypeInt64:					newValueInt64,
-    TypeDefault:                newValueDefault,
+	TypeString:                 newValueString,
+	TypeBinaryString:           newValueBinaryString,
+	TypeProtectedString:        newValueProtectedString,
+	TypeContent:                newValueContent,
+	TypeBool:                   newValueBool,
+	TypeInt:                    newValueInt,
+	TypeFloat:                  newValueFloat,
+	TypeDouble:                 newValueDouble,
+	TypeUDim:                   newValueUDim,
+	TypeUDim2:                  newValueUDim2,
+	TypeRay:                    newValueRay,
+	TypeFaces:                  newValueFaces,
+	TypeAxes:                   newValueAxes,
+	TypeBrickColor:             newValueBrickColor,
+	TypeColor3:                 newValueColor3,
+	TypeVector2:                newValueVector2,
+	TypeVector3:                newValueVector3,
+	TypeCFrame:                 newValueCFrame,
+	TypeToken:                  newValueToken,
+	TypeReference:              newValueReference,
+	TypeVector3int16:           newValueVector3int16,
+	TypeVector2int16:           newValueVector2int16,
+	TypeNumberSequence:         newValueNumberSequence,
+	TypeColorSequence:          newValueColorSequence,
+	TypeNumberRange:            newValueNumberRange,
+	TypeRect2D:                 newValueRect2D,
+	TypePhysicalProperties:     newValuePhysicalProperties,
+	TypeColor3uint8:            newValueColor3uint8,
+	TypeTuple:                  newValueTuple,
+	TypeArray:                  newValueArray,
+	TypeMap:                    newValueMap,
+	TypeDictionary:             newValueDictionary,
+	TypeColorSequenceKeypoint:  newValueColorSequenceKeypoint,
+	TypeNumberSequenceKeypoint: newValueNumberSequenceKeypoint,
+	TypeRegion3:                newValueRegion3,
+	TypeRegion3int16:           newValueRegion3int16,
+	TypeInt64:                  newValueInt64,
+	TypeDefault:                newValueDefault,
 }
 
 func joinstr(a ...string) string {
@@ -224,12 +225,12 @@ type ValueArray []Value
 type ValueDictionary map[string]Value
 type ValueMap map[string]Value
 type ValueRegion3 struct {
-    Start ValueVector3
-    End ValueVector3
+	Start ValueVector3
+	End   ValueVector3
 }
 type ValueRegion3int16 struct {
-    Start ValueVector3int16
-    End ValueVector3int16
+	Start ValueVector3int16
+	End   ValueVector3int16
 }
 type ValueSystemAddress ValueString
 type ValueInt64 int64
@@ -251,22 +252,22 @@ func (t ValueSystemAddress) Copy() Value {
 }
 
 type ValueDefault struct{}
+
 func newValueDefault() Value {
-    return ValueDefault{}
+	return ValueDefault{}
 }
 
 func (ValueDefault) Type() Type {
-    return TypeDefault
+	return TypeDefault
 }
 func (ValueDefault) String() string {
-    return "Default"
+	return "Default"
 }
 func (ValueDefault) Copy() Value {
-    return newValueDefault()
+	return newValueDefault()
 }
 
 var DefaultValue = ValueDefault{}
-
 
 ////////////////////////////////////////////////////////////////
 // Values
@@ -702,8 +703,8 @@ func (t ValueCFrame) Copy() Value {
 
 type ValueToken struct {
 	Value uint32
-	ID uint16
-	Name string
+	ID    uint16
+	Name  string
 }
 
 func newValueToken() Value {
@@ -991,38 +992,38 @@ func (t ValueColor3uint8) Copy() Value {
 
 ////////////////
 func newValueRegion3() Value {
-    return *new(ValueRegion3)
+	return *new(ValueRegion3)
 }
 func newValueRegion3int16() Value {
-    return *new(ValueRegion3int16)
+	return *new(ValueRegion3int16)
 }
 func newValueTuple() Value {
-    return *new(ValueTuple)
+	return *new(ValueTuple)
 }
 func newValueArray() Value {
-    return *new(ValueArray)
+	return *new(ValueArray)
 }
 func newValueMap() Value {
-    return *new(ValueMap)
+	return *new(ValueMap)
 }
 func newValueDictionary() Value {
-    return *new(ValueDictionary)
+	return *new(ValueDictionary)
 }
 func newValueColorSequenceKeypoint() Value {
-    return *new(ValueColorSequenceKeypoint)
+	return *new(ValueColorSequenceKeypoint)
 }
 func newValueNumberSequenceKeypoint() Value {
-    return *new(ValueNumberSequenceKeypoint)
+	return *new(ValueNumberSequenceKeypoint)
 }
 func newValueInt64() Value {
 	return *new(ValueInt64)
 }
 
 func (x ValueRegion3) String() string {
-    return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
+	return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
 }
 func (x ValueRegion3int16) String() string {
-    return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
+	return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
 }
 
 func (x ValueInt64) String() string {
@@ -1065,66 +1066,65 @@ func (x ValueMap) String() string {
 }
 
 func (x ValueTuple) Copy() Value {
-    return x // nop
+	return x // nop
 }
 
 func (x ValueTuple) Type() Type {
-    return TypeTuple
+	return TypeTuple
 }
-
 
 func (x ValueArray) Copy() Value {
-    return x
+	return x
 }
 func (x ValueArray) Type() Type {
-    return TypeArray
+	return TypeArray
 }
 
 func (x ValueMap) Copy() Value {
-    return x
+	return x
 }
 
 func (x ValueMap) Type() Type {
-    return TypeMap
+	return TypeMap
 }
 
 func (x ValueDictionary) Copy() Value {
-    return Value(x)
+	return Value(x)
 }
 
 func (x ValueDictionary) Type() Type {
-    return TypeDictionary
+	return TypeDictionary
 }
 
 func (x ValueColorSequenceKeypoint) Copy() Value {
-    return x
+	return x
 }
 
 func (x ValueColorSequenceKeypoint) Type() Type {
-    return TypeColorSequenceKeypoint
+	return TypeColorSequenceKeypoint
 }
 func (x ValueNumberSequenceKeypoint) Copy() Value {
-    return x
+	return x
 }
 
 func (x ValueNumberSequenceKeypoint) Type() Type {
-    return TypeNumberSequenceKeypoint
+	return TypeNumberSequenceKeypoint
 }
 
 func (x ValueRegion3) Copy() Value {
-    return x
+	return x
 }
 
 func (x ValueRegion3) Type() Type {
-    return TypeRegion3
+	return TypeRegion3
 }
 
 func (x ValueRegion3int16) Copy() Value {
-    return x
+	return x
 }
 
 func (x ValueRegion3int16) Type() Type {
-    return TypeRegion3int16
+	return TypeRegion3int16
 }
 
 func (x ValueInt64) Copy() Value {

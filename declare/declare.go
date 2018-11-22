@@ -29,6 +29,7 @@ func build(dinst instance, refs rbxfile.References, props map[*rbxfile.Instance]
 		inst.Reference = dinst.reference
 	}
 
+	// We don't need to lock here since the instances is completely owned by us
 	inst.Properties = make(map[string]rbxfile.Value, len(dinst.properties))
 	props[inst] = dinst.properties
 

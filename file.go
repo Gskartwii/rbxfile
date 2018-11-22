@@ -24,6 +24,7 @@ package rbxfile
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 ////////////////////////////////////////////////////////////////
@@ -77,7 +78,8 @@ type Instance struct {
 
 	// Properties is a map of properties of the instance. It maps the name of
 	// the property to its current value.
-	Properties map[string]Value
+	Properties      map[string]Value
+	PropertiesMutex *sync.RWMutex
 
 	// Children contains instances that are the children of the current
 	// instance.
@@ -91,9 +93,10 @@ type Instance struct {
 // parent.
 func NewInstance(className string, parent *Instance) *Instance {
 	inst := &Instance{
-		ClassName:  className,
-		Reference:  GenerateReference(),
-		Properties: make(map[string]Value, 0),
+		ClassName:       className,
+		Reference:       GenerateReference(),
+		Properties:      make(map[string]Value, 0),
+		PropertiesMutex: &sync.RWMutex{},
 	}
 	if parent != nil {
 		parent.Children = append(parent.Children, inst)
@@ -228,6 +231,7 @@ func (inst *Instance) SetParent(parent *Instance) error {
 }
 
 func (inst *Instance) clone(refs, crefs References, propRefs *[]PropRef) *Instance {
+	inst.PropertiesMutex.RLock()
 	clone := &Instance{
 		ClassName:  inst.ClassName,
 		Reference:  refs.Get(inst),
@@ -249,6 +253,7 @@ func (inst *Instance) clone(refs, crefs References, propRefs *[]PropRef) *Instan
 			clone.Properties[name] = value.Copy()
 		}
 	}
+	inst.PropertiesMutex.RUnlock()
 	for i, child := range inst.Children {
 		c := child.clone(refs, crefs, propRefs)
 		clone.Children[i] = c
@@ -308,6 +313,9 @@ func (inst *Instance) GetFullName() string {
 	// ServiceProvider. Since recreating this behavior would require
 	// information about the class hierarchy, this implementation simply
 	// includes every ancestor.
+	if inst == nil {
+		return "<nil>"
+	}
 
 	names := make([]string, 0, 8)
 
@@ -352,7 +360,9 @@ func (inst *Instance) IsDescendantOf(ancestor *Instance) bool {
 // Name returns the Name property of the instance, or an empty string if it is
 // invalid or not defined.
 func (inst *Instance) Name() string {
+	inst.PropertiesMutex.RLock()
 	iname, ok := inst.Properties["Name"]
+	inst.PropertiesMutex.RUnlock()
 	if !ok {
 		return inst.ClassName
 	}
@@ -370,7 +380,9 @@ func (inst *Instance) Name() string {
 // String implements the fmt.Stringer interface by returning the Name of the
 // instance, or the ClassName if Name isn't defined.
 func (inst *Instance) String() string {
+	inst.PropertiesMutex.RLock()
 	iname, ok := inst.Properties["Name"]
+	inst.PropertiesMutex.RUnlock()
 	if !ok {
 		return inst.ClassName
 	}
@@ -385,21 +397,28 @@ func (inst *Instance) String() string {
 
 // SetName sets the Name property of the instance.
 func (inst *Instance) SetName(name string) {
+	inst.PropertiesMutex.Lock()
 	inst.Properties["Name"] = ValueString(name)
+	inst.PropertiesMutex.Unlock()
 }
 
 // Get returns the value of a property in the instance. The value will be nil
 // if the property is not defined.
 func (inst *Instance) Get(property string) (value Value) {
-	return inst.Properties[property]
+	inst.PropertiesMutex.RLock()
+	val := inst.Properties[property]
+	inst.PropertiesMutex.RUnlock()
+	return val
 }
 
 // Set sets the value of a property in the instance. If value is nil, then the
 // value will be deleted from the Properties map.
 func (inst *Instance) Set(property string, value Value) {
+	inst.PropertiesMutex.Lock()
 	if value == nil {
 		delete(inst.Properties, property)
 	} else {
 		inst.Properties[property] = value
 	}
+	inst.PropertiesMutex.Unlock()
 }
