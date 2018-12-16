@@ -1,10 +1,12 @@
 package rbxfile
 
 import (
+	"crypto/rand"
 	"encoding/hex"
+	"io"
 	"strings"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // PropRef specifies the property of an instance that is a reference, which is
@@ -82,6 +84,21 @@ func IsEmptyReference(ref string) bool {
 	default:
 		return false
 	}
+}
+
+func generateUUID() string {
+	var buf [32]byte
+	if _, err := io.ReadFull(rand.Reader, buf[:16]); err != nil {
+		panic(err)
+	}
+	buf[6] = (buf[6] & 0x0F) | 0x40 // Version 4       ; 0100XXXX
+	buf[8] = (buf[8] & 0x3F) | 0x80 // Variant RFC4122 ; 10XXXXXX
+	const hextable = "0123456789ABCDEF"
+	for i := len(buf)/2 - 1; i >= 0; i-- {
+		buf[i*2+1] = hextable[buf[i]&0x0f]
+		buf[i*2] = hextable[buf[i]>>4]
+	}
+	return string(buf[:])
 }
 
 // GenerateReference generates a unique string that can be used as a reference

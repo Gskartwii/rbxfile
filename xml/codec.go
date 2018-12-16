@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/robloxapi/rbxapi"
-	"github.com/gskartwii/rbxfile"
 	"io"
 	"io/ioutil"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/gskartwii/rbxfile"
+	"github.com/robloxapi/rbxapi"
 )
 
 // RobloxCodec implements Decoder and Encoder to emulate Roblox's internal
@@ -45,6 +46,10 @@ type RobloxCodec struct {
 	// generally preferred to set ExcludeInvalidAPI to false, so that false
 	// negatives do not lead to lost data.
 	ExcludeInvalidAPI bool
+
+	// ExcludeMetadata determines whether <Meta> tags should be included while
+	// encoding.
+	ExcludeMetadata bool
 }
 
 func (c RobloxCodec) Decode(document *Document) (root *rbxfile.Root, err error) {
@@ -101,6 +106,20 @@ func (dec *rdecoder) decode() error {
 
 	dec.root = new(rbxfile.Root)
 	dec.root.Instances, _ = dec.getItems(nil, dec.document.Root.Tags, nil)
+
+	for _, tag := range dec.document.Root.Tags {
+		if tag.StartName != "Meta" {
+			continue
+		}
+		key, ok := tag.AttrValue("name")
+		if !ok {
+			continue
+		}
+		if dec.root.Metadata == nil {
+			dec.root.Metadata = make(map[string]string)
+		}
+		dec.root.Metadata[key] = tag.Text
+	}
 
 	for _, propRef := range dec.propRefs {
 		dec.instLookup.Resolve(propRef)
@@ -296,6 +315,8 @@ func (RobloxCodec) GetCanonType(valueType string) string {
 		return "PhysicalProperties"
 	case "color3uint8":
 		return "Color3uint8"
+	case "int64":
+		return "int64"
 	}
 	return ""
 }
@@ -496,7 +517,7 @@ func (dec *rdecoder) getValue(tag *Tag, valueType string, enum rbxapi.Enum) (val
 			// Verify that value is a valid enum item
 			for _, item := range enum.GetEnumItems() {
 				if int(v) == item.GetValue() {
-                    return rbxfile.ValueToken{Value: uint32(v)}, true
+					return rbxfile.ValueToken{Value: uint32(v)}, true
 				}
 			}
 			if dec.codec.ExcludeInvalidAPI {
@@ -648,6 +669,13 @@ func (dec *rdecoder) getValue(tag *Tag, valueType string, enum rbxapi.Enum) (val
 			G: byte(v & 0x0000FF00 >> 8),
 			B: byte(v & 0x000000FF),
 		}, true
+
+	case "int64":
+		v, err := strconv.ParseInt(getContent(tag), 10, 64)
+		if err != nil {
+			return nil, false
+		}
+		return rbxfile.ValueInt64(v), true
 	}
 
 	return nil, false
@@ -737,6 +765,18 @@ func (c RobloxCodec) Encode(root *rbxfile.Root) (document *Document, err error) 
 
 }
 
+type sortTagsByNameAttr []*Tag
+
+func (t sortTagsByNameAttr) Len() int {
+	return len(t)
+}
+func (t sortTagsByNameAttr) Less(i, j int) bool {
+	return t[i].Attr[0].Value < t[j].Attr[0].Value
+}
+func (t sortTagsByNameAttr) Swap(i, j int) {
+	t[i], t[j] = t[j], t[i]
+}
+
 func (enc *rencoder) encode() {
 	enc.document = &Document{
 		Prefix: "",
@@ -744,11 +784,22 @@ func (enc *rencoder) encode() {
 		Suffix: "",
 		Root:   NewRoot(),
 	}
+	if !enc.codec.ExcludeMetadata {
+		enc.document.Root.Tags = make([]*Tag, 0, len(enc.root.Metadata))
+		for key, value := range enc.root.Metadata {
+			enc.document.Root.Tags = append(enc.document.Root.Tags, &Tag{
+				StartName: "Meta",
+				Attr:      []Attr{{Name: "name", Value: key}},
+				Text:      value,
+			})
+		}
+		sort.Sort(sortTagsByNameAttr(enc.document.Root.Tags))
+	}
 	if !enc.codec.ExcludeExternal {
-		enc.document.Root.Tags = []*Tag{
+		enc.document.Root.Tags = append(enc.document.Root.Tags,
 			&Tag{StartName: "External", Text: "null"},
 			&Tag{StartName: "External", Text: "nil"},
-		}
+		)
 	}
 
 	for _, instance := range enc.root.Instances {
@@ -1232,6 +1283,14 @@ func (enc *rencoder) encodeProperty(class, prop string, value rbxfile.Value) *Ta
 			NoIndent:  true,
 			Text:      strconv.FormatUint(0xFF<<24|r<<16|g<<8|b, 10),
 		}
+
+	case rbxfile.ValueInt64:
+		return &Tag{
+			StartName: "int64",
+			Attr:      attr,
+			NoIndent:  true,
+			Text:      strconv.FormatInt(int64(value), 10),
+		}
 	}
 
 	return nil
@@ -1358,6 +1417,8 @@ func isCanonType(t string, v rbxfile.Value) bool {
 		return t == "PhysicalProperties"
 	case rbxfile.ValueColor3uint8:
 		return t == "Color3uint8"
+	case rbxfile.ValueInt64:
+		return t == "int64"
 	}
 	return false
 }

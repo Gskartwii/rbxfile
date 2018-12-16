@@ -249,6 +249,15 @@ loop:
 
 			}
 
+		case *ChunkMeta:
+			chunkType = "meta"
+			if root.Metadata == nil {
+				root.Metadata = make(map[string]string, len(chunk.Values))
+			}
+			for _, pair := range chunk.Values {
+				root.Metadata[pair[0]] = pair[1]
+			}
+
 		case *ChunkEnd:
 			chunkType = "end"
 			break loop
@@ -269,6 +278,10 @@ func decodeValue(valueType rbxapi.Type, refs map[int32]*rbxfile.Instance, bvalue
 		v := make([]byte, len(*bvalue))
 		copy(v, *bvalue)
 
+		if valueType == nil {
+			value = rbxfile.ValueString(v)
+			break
+		}
 		switch valueType.GetName() {
 		case rbxfile.TypeBinaryString.String():
 			value = rbxfile.ValueBinaryString(v)
@@ -444,6 +457,10 @@ func decodeValue(valueType rbxapi.Type, refs map[int32]*rbxfile.Instance, bvalue
 			G: bvalue.G,
 			B: bvalue.B,
 		}
+
+	case *ValueInt64:
+		value = rbxfile.ValueInt64(*bvalue)
+
 	}
 
 	return
@@ -794,8 +811,19 @@ func (c RobloxCodec) Encode(root *rbxfile.Root) (model *FormatModel, err error) 
 	// Make FormatModel.
 	model.TypeCount = uint32(len(instChunkList))
 	model.InstanceCount = uint32(len(instList))
-	model.Chunks = make([]Chunk, len(instChunkList)+len(propChunkList)+1+1)
+	model.Chunks = make([]Chunk, 1+len(instChunkList)+len(propChunkList)+1+1)
 	chunks := model.Chunks[:0]
+
+	metaChunk := &ChunkMeta{
+		IsCompressed: true,
+		Values:       make([][2]string, 0, len(root.Metadata)),
+	}
+	for key, value := range root.Metadata {
+		metaChunk.Values = append(metaChunk.Values, [2]string{key, value})
+	}
+	sort.Sort(sortMetaData(metaChunk.Values))
+	chunks = chunks[len(chunks) : len(chunks)+1]
+	chunks[0] = metaChunk
 
 	chunks = chunks[len(chunks) : len(chunks)+len(instChunkList)]
 	for i, chunk := range instChunkList {
@@ -837,6 +865,18 @@ func (c sortPropChunks) Less(i, j int) bool {
 	return c[i].PropertyName < c[j].PropertyName
 }
 func (c sortPropChunks) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+type sortMetaData [][2]string
+
+func (c sortMetaData) Len() int {
+	return len(c)
+}
+func (c sortMetaData) Less(i, j int) bool {
+	return c[i][0] < c[j][1]
+}
+func (c sortMetaData) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
 
@@ -1033,6 +1073,9 @@ func encodeValue(refs map[*rbxfile.Instance]int, value rbxfile.Value) (bvalue Va
 			G: value.G,
 			B: value.B,
 		}
+
+	case rbxfile.ValueInt64:
+		bvalue = (*ValueInt64)(&value)
 	}
 
 	return

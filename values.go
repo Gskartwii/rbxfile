@@ -233,7 +233,6 @@ type ValueRegion3int16 struct {
 	End   ValueVector3int16
 }
 type ValueSystemAddress ValueString
-type ValueInt64 int64
 
 func newValueSystemAddress() Value {
 	return make(ValueSystemAddress, 0)
@@ -1015,19 +1014,12 @@ func newValueColorSequenceKeypoint() Value {
 func newValueNumberSequenceKeypoint() Value {
 	return *new(ValueNumberSequenceKeypoint)
 }
-func newValueInt64() Value {
-	return *new(ValueInt64)
-}
 
 func (x ValueRegion3) String() string {
 	return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
 }
 func (x ValueRegion3int16) String() string {
 	return fmt.Sprintf("{%s}, {%s}", x.Start.String(), x.End.String())
-}
-
-func (x ValueInt64) String() string {
-	return fmt.Sprintf("%d", x)
 }
 
 func (x ValueTuple) String() string {
@@ -1127,10 +1119,20 @@ func (x ValueRegion3int16) Type() Type {
 	return TypeRegion3int16
 }
 
-func (x ValueInt64) Copy() Value {
-	return x
+type ValueInt64 int64
+
+func newValueInt64() Value {
+	return *new(ValueInt64)
 }
 
-func (x ValueInt64) Type() Type {
+func (ValueInt64) Type() Type {
 	return TypeInt64
+}
+
+func (t ValueInt64) String() string {
+	return strconv.FormatInt(int64(t), 10)
+}
+
+func (t ValueInt64) Copy() Value {
+	return t
 }
