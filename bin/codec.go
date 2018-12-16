@@ -661,7 +661,11 @@ func (c RobloxCodec) Encode(root *rbxfile.Root) (model *FormatModel, err error) 
 				{
 					bval := encodeValue(refs, value)
 					if bval == nil {
-						addWarn("unknown property type (%d) in instance #%d (%s.%s)", byte(value.Type()), ref, inst.ClassName, name)
+						if value == nil {
+							addWarn("nil value in instance #%d (%s.%s)", ref, inst.ClassName, name)
+						} else {
+							addWarn("unknown property type (%d) in instance #%d (%s.%s)", byte(value.Type()), ref, inst.ClassName, name)
+						}
 						continue
 					}
 					dataType = bval.Type()
