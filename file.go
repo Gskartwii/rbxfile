@@ -233,11 +233,12 @@ func (inst *Instance) SetParent(parent *Instance) error {
 func (inst *Instance) clone(refs, crefs References, propRefs *[]PropRef) *Instance {
 	inst.PropertiesMutex.RLock()
 	clone := &Instance{
-		ClassName:  inst.ClassName,
-		Reference:  refs.Get(inst),
-		IsService:  inst.IsService,
-		Children:   make([]*Instance, len(inst.Children)),
-		Properties: make(map[string]Value, len(inst.Properties)),
+		ClassName:       inst.ClassName,
+		Reference:       refs.Get(inst),
+		IsService:       inst.IsService,
+		Children:        make([]*Instance, len(inst.Children)),
+		Properties:      make(map[string]Value, len(inst.Properties)),
+		PropertiesMutex: &sync.RWMutex{},
 	}
 	crefs[clone.Reference] = clone
 	for name, value := range inst.Properties {
